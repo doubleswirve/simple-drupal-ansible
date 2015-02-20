@@ -1,0 +1,11 @@
+---
+- hosts: all
+
+  roles:
+    - common
+    - php
+    - composer
+    - drush
+    - nginx
+    - mysql
+    - drupal

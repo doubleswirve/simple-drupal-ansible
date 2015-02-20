@@ -1,0 +1,43 @@
+---
+- name: add ppa
+  apt_repository: repo='ppa:nginx/stable'
+
+- name: install
+  apt: name=nginx update_cache=yes
+
+- name: configure
+  template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf backup=yes
+  notify: restart nginx
+
+- name: create web directory
+  file: >
+    path=/var/www/{{ weburl }}
+    mode=0775
+    owner=www-data
+    group=www-data
+    state=directory
+
+- name: add htpasswd
+  copy: >
+    src=.htpasswd
+    dest=/var/www/{{ weburl }}/.htpasswd
+
+- name: add conf to sites available
+  template: >
+    src=site.conf.j2
+    dest=/etc/nginx/sites-available/{{ weburl }}
+  notify: reload nginx
+
+- name: link site to sites enabled
+  file: >
+    src=/etc/nginx/sites-available/{{ weburl }}
+    dest=/etc/nginx/sites-enabled/{{ weburl }}
+    state=link
+  notify: reload nginx
+
+- name: remove default site
+  file: path=/etc/nginx/sites-enabled/default state=absent
+  notify: reload nginx
+
+- name: start the service
+  service: name=nginx state=started enabled=yes

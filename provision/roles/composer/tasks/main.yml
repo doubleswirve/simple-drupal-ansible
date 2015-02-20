@@ -1,0 +1,10 @@
+---
+- name: install composer
+  shell: >
+    curl -sS https://getcomposer.org/installer | php
+    creates={{ composer_path }}
+
+- name: move composer to global access location
+  shell: >
+    mv composer.phar {{ composer_path }}
+    creates={{ composer_path }}

@@ -1,0 +1,46 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server ipv6only=on;
+    client_max_body_size 64M;
+
+    root /var/www/{{ weburl }}/public;
+    index index.php index.html index.htm;
+
+    server_name {{ weburl }};
+
+    error_log /var/www/{{ weburl }}/error.log;
+    access_log /var/www/{{ weburl }}/access.log;
+    
+    location ~* \.(gif|jpg|jpeg|png|css|js|svg)$ {
+        expires max;
+    }
+
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
+
+    try_files $uri $uri/ /index.php?$args;
+
+    location ~ \.php$ {
+        try_files $uri $uri/ /index.php?$args =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_index index.php;
+        include fastcgi_params;
+    }
+
+    # This location block is used to view nginx stats
+    location /nginx_status {
+        stub_status on;
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
+    }
+    
+    location ~ /\.git {
+      deny all;
+      return 404;
+    }
+}

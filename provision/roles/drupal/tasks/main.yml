@@ -1,0 +1,17 @@
+---
+- name: install drupal
+  shell: >
+    {{ drush_path }} dl drupal --drupal-project-rename=public
+    chdir=/var/www/{{ weburl }}
+    creates=/var/www/{{ weburl }}/public
+
+- name: install site
+  shell: >
+    {{ drush_path }} si
+    --account-name=admin
+    --account-pass=admin
+    --db-url='mysql://root:{{ mysql_root_password }}@localhost/drupal'
+    --site-name='{{ sitename }}'
+    -y
+    chdir=/var/www/{{ weburl }}/public
+    creates=/var/www/{{ weburl }}/public/sites/default/settings.php

@@ -1,0 +1,50 @@
+---
+- name: update and upgrade
+  apt: upgrade=safe update_cache=yes
+
+- name: install packages
+  apt: >
+    name={{ item }}
+  with_items:
+    - fail2ban
+    - ntp
+    - nscd
+    - git
+    - subversion
+    - logwatch
+    - curl
+    - htop
+    - unattended-upgrades
+    - python-apt
+    - python-pycurl
+    - apt-transport-https
+    - python-software-properties
+
+- name: ensure ntp is started
+  service: name=ntp state=started enabled=yes
+
+- name: adjust apt update intervals
+  copy: src=10periodic dest=/etc/apt/apt.conf.d/10periodic
+
+- name: make sure unattended-upgrades only installs from {{ ubuntu_release }}-security
+  lineinfile: >
+    dest=/etc/apt/apt.conf.d/50unattended-upgrades
+    regexp="{{ ubuntu_release }}-updates"
+    state=absent
+
+- name: set the hostname file to {{ hostname }}
+  hostname: >
+    name={{ hostname }}
+
+- name: raise the kernel queue size for new connections
+  sysctl: name="net.core.somaxconn" value=1000000 state=present
+
+- name: raise the range of available ports
+  sysctl: name="net.ipv4.ip_local_port_range" value="10000 65535" state=present
+
+- name: allow reusing tcp sockets without waiting for full timeout
+  sysctl: name="net.ipv4.tcp_tw_reuse" value=1 state=present
+
+- name: adjust max number of open files allowed
+  copy: src=limits.conf dest=/etc/security/limits.conf
+  notify: set ulimit
