@@ -15,3 +15,11 @@
     -y
     chdir=/var/www/{{ weburl }}/public
     creates=/var/www/{{ weburl }}/public/sites/default/settings.php
+
+- name: set ownership
+  file: >
+    path=/var/www/{{ weburl }}/public
+    owner=www-data
+    group=www-data
+    state=directory
+    recurse=yes
